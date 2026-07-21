@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>El Oráculo Dorado</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500&display=swap');
+ 
+:root{
+  --velvet-1:#2b0f22;
+  --velvet-2:#170611;
+  --velvet-deep:#0a030a;
+  --gold-bright:#f6e2a0;
+  --gold:#cda13c;
+  --gold-dark:#7a5a1e;
+  --ink:#170b0e;
+  --ink-2:#25101a;
+  --ivory:#f2e6c9;
+  --crimson:#5c1626;
+}
+ 
+*{box-sizing:border-box;}
+ 
+html,body{
+  margin:0;
+  min-height:100%;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255,255,255,.05), transparent 55%),
+    radial-gradient(ellipse at 50% 100%, rgba(0,0,0,.55), transparent 60%),
+    repeating-linear-gradient(45deg, rgba(0,0,0,0.10) 0px, rgba(0,0,0,0.10) 2px, transparent 2px, transparent 5px),
+    linear-gradient(160deg, var(--velvet-1), var(--velvet-2) 55%, var(--velvet-deep));
+  color:var(--ivory);
+  font-family:'Cormorant Garamond', serif;
+  display:flex;
+  justify-content:center;
+  padding:28px 14px 60px;
+}
+ 
+.stage{
+  width:100%;
+  max-width:660px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+ 
+.title{
+  font-family:'Cinzel Decorative', serif;
+  font-weight:700;
+  font-size:clamp(22px,5vw,34px);
+  letter-spacing:.06em;
+  text-align:center;
+  color:var(--gold-bright);
+  text-shadow:0 0 16px rgba(246,226,160,.4), 0 2px 0 rgba(0,0,0,.6);
+  margin:6px 0 2px;
+}
+ 
+.subtitle{
+  font-style:italic;
+  color:#c8b98e;
+  font-size:15px;
+  letter-spacing:.03em;
+  margin-bottom:20px;
+  opacity:.85;
+  text-align:center;
+}
+ 
+/* ---- tabs ---- */
+.tabs{
+  display:flex;
+  gap:10px;
+  margin-bottom:26px;
+}
+.tab{
+  font-family:'Cinzel', serif;
+  font-size:12.5px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  padding:10px 20px;
+  border-radius:20px;
+  cursor:pointer;
+  border:1px solid var(--gold-dark);
+  background:transparent;
+  color:#d9c48f;
+  transition:all .25s ease;
+}
+.tab.active{
+  background:linear-gradient(180deg,var(--gold-bright),var(--gold) 60%,var(--gold-dark));
+  color:var(--ink);
+  border-color:#4a3410;
+  box-shadow:0 2px 0 #3d2b0e, 0 4px 12px rgba(0,0,0,.5);
+}
+ 
+.mode-panel{ display:none; width:100%; flex-direction:column; align-items:center; }
+.mode-panel.active{ display:flex; }
+ 
+.hud{
+  display:flex;
+  align-items:center;
+  gap:22px;
+  margin-bottom:22px;
+  font-family:'Cinzel', serif;
+  font-size:13px;
+  letter-spacing:.08em;
+  color:var(--ivory);
+}
+.hud .stat{
+  display:flex; flex-direction:column; align-items:center; gap:2px;
+  min-width:74px;
+}
+.hud .stat b{
+  font-size:20px;
+  color:var(--gold-bright);
+  font-family:'Cinzel Decorative', serif;
+  text-shadow:0 0 10px rgba(246,226,160,.4);
+}
+.hud .divider{width:1px;height:30px;background:linear-gradient(var(--gold-dark),transparent,var(--gold-dark)); opacity:.6;}
+ 
+.btn{
+  font-family:'Cinzel', serif;
+  font-size:12.5px;
+  letter-spacing:.12em;
+  color:var(--ink);
+  background:linear-gradient(180deg,var(--gold-bright),var(--gold) 60%,var(--gold-dark));
+  border:1px solid #4a3410;
+  padding:9px 18px;
+  border-radius:3px;
+  cursor:pointer;
+  box-shadow:0 2px 0 #3d2b0e, 0 4px 10px rgba(0,0,0,.5);
+  text-transform:uppercase;
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.btn:hover{ filter:brightness(1.08); transform:translateY(-1px);}
+.btn:active{ transform:translateY(1px); box-shadow:0 1px 0 #3d2b0e, 0 2px 6px rgba(0,0,0,.5);}
+ 
+.board{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(58px, 1fr));
+  gap:clamp(8px,2.4vw,18px);
+  width:min(94vw, 600px);
+  perspective:1400px;
+}
+ 
+.card{
+  position:relative;
+  aspect-ratio:5/7.2;
+  cursor:pointer;
+}
+.card-inner{
+  position:absolute; inset:0;
+  transform-style:preserve-3d;
+  transition:transform .65s cubic-bezier(.4,.2,.2,1);
+  will-change:transform;
+}
+.card.flipped .card-inner{ transform:rotateY(180deg); }
+ 
+.card-face{
+  position:absolute; inset:0;
+  backface-visibility:hidden;
+  border-radius:8px;
+  overflow:hidden;
+  box-shadow:0 6px 14px rgba(0,0,0,.55), inset 0 0 0 1px rgba(0,0,0,.4);
+}
+.card-face svg{ width:100%; height:100%; display:block; }
+.card-face.front{ transform:rotateY(180deg); }
+ 
+.card-face::after{
+  content:"";
+  position:absolute; inset:0;
+  background:linear-gradient(115deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%);
+  transform:translateX(-140%);
+  opacity:0;
+  pointer-events:none;
+}
+.card.flipped .card-face::after{
+  animation:sweep .75s ease-out .05s;
+}
+@keyframes sweep{
+  0%{ transform:translateX(-140%); opacity:0;}
+  15%{ opacity:.9;}
+  55%{ opacity:.6;}
+  100%{ transform:translateX(140%); opacity:0;}
+}
+ 
+.card.matched{
+  cursor:default;
+  transform:scale(0.92);
+  transition:transform .4s ease;
+}
+.card.matched .card-inner{ animation:auraPulse 3.2s ease-in-out infinite; }
+.card.matched .card-face.front{ filter:saturate(0.55) brightness(0.8); transition:filter .4s ease; }
+.card.matched .card-face.front::before{
+  content:"";
+  position:absolute; inset:0;
+  background:rgba(10,4,8,.38);
+  z-index:1;
+}
+@keyframes auraPulse{
+  0%,100%{ filter:drop-shadow(0 0 5px rgba(246,226,160,.25)); }
+  50%{ filter:drop-shadow(0 0 12px rgba(246,226,160,.5)); }
+}
+ 
+.seal{
+  position:absolute;
+  top:-8px; right:-8px;
+  width:30px; height:30px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #fff6d6, #cda13c 55%, #6e4d16 100%);
+  border:1px solid #4a3410;
+  box-shadow:0 3px 8px rgba(0,0,0,.6);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Cinzel', serif;
+  font-size:14px;
+  color:#2a1a06;
+  opacity:0;
+  transform:scale(0) rotate(-25deg);
+  z-index:5;
+  pointer-events:none;
+}
+.card.matched .seal{
+  animation:sealPop .55s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes sealPop{
+  0%{ opacity:0; transform:scale(0) rotate(-25deg); }
+  60%{ opacity:1; transform:scale(1.2) rotate(10deg); }
+  100%{ opacity:1; transform:scale(1) rotate(0deg); }
+}
+ 
+.card.wrong .card-inner{ animation:shake .4s ease; }
+@keyframes shake{
+  20%{ transform:translateX(-4px) rotateY(180deg);}
+  40%{ transform:translateX(4px) rotateY(180deg);}
+  60%{ transform:translateX(-3px) rotateY(180deg);}
+  80%{ transform:translateX(3px) rotateY(180deg);}
+  100%{ transform:translateX(0) rotateY(180deg);}
+}
+ 
+.overlay{
+  position:fixed; inset:0;
+  background:rgba(5,2,6,.78);
+  display:flex; align-items:center; justify-content:center;
+  z-index:50;
+  opacity:0; pointer-events:none;
+  transition:opacity .5s ease;
+}
+.overlay.show{ opacity:1; pointer-events:auto; }
+.win-card{
+  background:linear-gradient(160deg,var(--ink-2),var(--ink));
+  border:1px solid var(--gold-dark);
+  border-radius:10px;
+  padding:36px 34px;
+  text-align:center;
+  max-width:340px;
+  box-shadow:0 0 40px rgba(246,226,160,.25), 0 20px 50px rgba(0,0,0,.6);
+}
+.win-card h2{
+  font-family:'Cinzel Decorative', serif;
+  color:var(--gold-bright);
+  margin:0 0 10px;
+  font-size:24px;
+  text-shadow:0 0 14px rgba(246,226,160,.5);
+}
+.win-card p{ margin:0 0 22px; color:#d8c9a0; font-size:16px; }
+.win-card p b{ color:var(--gold-bright); }
+ 
+/* ---- oracle mode ---- */
+.diviner{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:22px;
+  width:100%;
+  max-width:520px;
+}
+.diviner-avatar{
+  width:76px; height:76px;
+  flex:0 0 auto;
+  animation:floatY 4.2s ease-in-out infinite;
+}
+.diviner-avatar svg{ width:100%; height:100%; display:block; }
+.diviner-avatar .lid{ animation:blink 5.5s ease-in-out infinite; transform-origin:100px 100px; }
+@keyframes floatY{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-5px); }
+}
+@keyframes blink{
+  0%, 92%, 100%{ transform:scaleY(0.02); opacity:0; }
+  95%{ transform:scaleY(1); opacity:1; }
+}
+.diviner-info{ text-align:left; }
+.diviner-name{
+  font-family:'Cinzel Decorative', serif;
+  font-size:15.5px;
+  color:var(--gold-bright);
+  text-shadow:0 0 10px rgba(246,226,160,.35);
+  margin-bottom:4px;
+}
+.diviner-line{
+  font-style:italic;
+  font-size:14.5px;
+  color:#c8b98e;
+  min-height:1.4em;
+  transition:opacity .35s ease;
+}
+.diviner-line.fade{ opacity:0; }
+ 
+.spread-options{
+  display:flex;
+  gap:10px;
+  margin-bottom:20px;
+}
+.spread-btn{
+  font-family:'Cinzel', serif;
+  font-size:12px;
+  letter-spacing:.1em;
+  padding:8px 16px;
+  border-radius:20px;
+  border:1px solid var(--gold-dark);
+  background:rgba(0,0,0,.25);
+  color:#d9c48f;
+  cursor:pointer;
+  transition:all .2s ease;
+}
+.spread-btn.active{
+  background:linear-gradient(180deg,var(--gold-bright),var(--gold) 60%,var(--gold-dark));
+  color:var(--ink);
+  border-color:#4a3410;
+}
+ 
+.oracle-row{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:14px;
+  margin-bottom:14px;
+  width:100%;
+  perspective:1400px;
+  position:relative;
+}
+.oracle-row .card{ width:110px; transition:transform .3s ease, filter .3s ease; }
+.oracle-row.count-8 .card{ width:76px; }
+.oracle-row .position-label{
+  position:absolute;
+  top:-22px; left:0; right:0;
+  text-align:center;
+  font-family:'Cinzel', serif;
+  font-size:10.5px;
+  letter-spacing:.15em;
+  color:#c8b98e;
+  text-transform:uppercase;
+}
+.oracle-card-wrap{
+  position:relative;
+  opacity:0;
+  animation:dealIn .6s cubic-bezier(.2,.8,.3,1) forwards;
+}
+@keyframes dealIn{
+  0%{ opacity:0; transform:translate(-46vw,-16vh) rotate(-30deg) scale(.6); }
+  70%{ opacity:1; }
+  100%{ opacity:1; transform:translate(0,0) rotate(0deg) scale(1); }
+}
+ 
+.oracle-row .card:not(.flipped):hover{
+  transform:translateY(-10px);
+  filter:drop-shadow(0 14px 20px rgba(0,0,0,.55));
+}
+.oracle-row .card:not(.flipped){ animation:invitePulse 2.4s ease-in-out infinite; }
+@keyframes invitePulse{
+  0%,100%{ filter:drop-shadow(0 0 4px rgba(246,226,160,.15)); }
+  50%{ filter:drop-shadow(0 0 12px rgba(246,226,160,.45)); }
+}
+ 
+.oracle-row .card.revealed{ cursor:default; animation:none; }
+.oracle-row .card.revealed .card-inner{ animation:revealGlow 3s ease-in-out infinite; }
+@keyframes revealGlow{
+  0%,100%{ filter:drop-shadow(0 0 8px rgba(246,226,160,.4)); }
+  50%{ filter:drop-shadow(0 0 20px rgba(246,226,160,.8)); }
+}
+ 
+.burst{
+  position:absolute;
+  top:50%; left:50%;
+  width:220px; height:220px;
+  transform:translate(-50%,-50%) scale(0);
+  pointer-events:none;
+  z-index:6;
+  opacity:0;
+}
+.burst.go{ animation:burstOut .9s ease-out forwards; }
+@keyframes burstOut{
+  0%{ transform:translate(-50%,-50%) scale(0.2) rotate(0deg); opacity:1; }
+  100%{ transform:translate(-50%,-50%) scale(1.5) rotate(50deg); opacity:0; }
+}
+ 
+.twinkle-field{
+  position:absolute; inset:0;
+  overflow:hidden;
+  pointer-events:none;
+  border-radius:10px;
+}
+.twinkle{
+  position:absolute;
+  width:3px; height:3px;
+  background:#f6e2a0;
+  border-radius:50%;
+  opacity:0;
+  box-shadow:0 0 6px 1px rgba(246,226,160,.8);
+  animation:twinkle 3.4s ease-in-out infinite;
+}
+@keyframes twinkle{
+  0%,100%{ opacity:0; transform:scale(0.6); }
+  50%{ opacity:1; transform:scale(1.2); }
+}
+ 
+.reading-text.typing::after{
+  content:"";
+  display:inline-block;
+  width:2px; height:1em;
+  background:var(--gold-bright);
+  margin-left:2px;
+  vertical-align:text-bottom;
+  animation:caretBlink .8s steps(1) infinite;
+}
+@keyframes caretBlink{ 50%{ opacity:0; } }
+ 
+ 
+ 
+.shuffle-row{ margin-bottom:22px; }
+ 
+.scroll-panel{
+  width:100%;
+  max-width:560px;
+  min-height:110px;
+  background:linear-gradient(160deg, rgba(37,16,26,.9), rgba(10,3,10,.95));
+  border:1px solid var(--gold-dark);
+  border-radius:10px;
+  padding:22px 26px 26px;
+  box-shadow:inset 0 0 30px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.4);
+  position:relative;
+  overflow:hidden;
+}
+#scrollContent{ position:relative; z-index:2; }
+.scroll-panel::before{
+  content:"";
+  position:absolute; inset:8px;
+  border:1px solid rgba(205,161,60,.35);
+  border-radius:6px;
+  pointer-events:none;
+}
+.scroll-placeholder{
+  text-align:center;
+  font-style:italic;
+  color:#a8946a;
+  font-size:15px;
+  padding:20px 0;
+}
+.reading-entry{
+  animation:fadeIn .8s ease;
+  padding:14px 0;
+}
+.reading-entry + .reading-entry{
+  border-top:1px solid rgba(205,161,60,.25);
+}
+.reading-pos{
+  font-family:'Cinzel', serif;
+  font-size:10.5px;
+  letter-spacing:.22em;
+  color:#a8894a;
+  text-transform:uppercase;
+  margin-bottom:4px;
+}
+.reading-name{
+  font-family:'Cinzel Decorative', serif;
+  font-size:18px;
+  color:var(--gold-bright);
+  margin-bottom:8px;
+  text-shadow:0 0 10px rgba(246,226,160,.3);
+}
+.reading-name .roman{
+  font-family:'Cinzel', serif;
+  font-size:12px;
+  color:#a8894a;
+  margin-left:8px;
+}
+.reading-text{
+  font-size:16.5px;
+  line-height:1.55;
+  color:#e7d8b3;
+  margin:0;
+  font-style:italic;
+}
+@keyframes fadeIn{
+  from{ opacity:0; transform:translateY(6px); }
+  to{ opacity:1; transform:translateY(0); }
+}
+ 
+@media (prefers-reduced-motion: reduce){
+  .card-inner, .card-face::after, .card.matched .card-inner, .reading-entry{ transition:none; animation:none; }
+}
+</style>
+</head>
+<body>
+ 
+<div class="stage">
+  <div class="title">✦ EL ORÁCULO DORADO ✦</div>
+  <div class="subtitle" id="subtitle">Voltea dos cartas para hallar sus pares. Despeja la mesa en el menor número de movimientos.</div>
+ 
+  <div class="tabs">
+    <div class="tab active" data-mode="memoria">Juego de Memoria</div>
+    <div class="tab" data-mode="oraculo">Lectura del Oráculo</div>
+  </div>
+ 
+  <!-- ===== MEMORY MODE ===== -->
+  <div class="mode-panel active" id="panel-memoria">
+    <div class="hud">
+      <div class="stat">movimientos<b id="moves">0</b></div>
+      <div class="divider"></div>
+      <div class="stat">parejas<b id="pairs">0/8</b></div>
+      <div class="divider"></div>
+      <button class="btn" id="restart">Reiniciar</button>
+    </div>
+    <div class="board" id="board"></div>
+  </div>
+ 
+  <!-- ===== ORACLE MODE ===== -->
+  <div class="mode-panel" id="panel-oraculo">
+    <div class="diviner">
+      <div class="diviner-avatar" id="divinerAvatar"></div>
+      <div class="diviner-info">
+        <div class="diviner-name">La Vidente Áurea</div>
+        <div class="diviner-line" id="divinerLine">Acércate. Las cartas ya te esperaban.</div>
+      </div>
+    </div>
+    <div class="spread-options">
+      <div class="spread-btn active" data-count="1">Una carta</div>
+      <div class="spread-btn" data-count="3">Tres cartas</div>
+      <div class="spread-btn" data-count="8">Las ocho</div>
+    </div>
+    <div class="shuffle-row">
+      <button class="btn" id="shuffleOracle">Barajar y tirar</button>
+    </div>
+    <div class="oracle-row count-1" id="oracleRow"></div>
+    <div class="scroll-panel" id="scrollPanel">
+      <div class="twinkle-field" id="twinkleField"></div>
+      <div id="scrollContent">
+        <div class="scroll-placeholder" id="scrollPlaceholder">Elige tu tirada y voltea las cartas para revelar la lectura.</div>
+      </div>
+    </div>
+  </div>
+</div>
+ 
+<div class="overlay" id="overlay">
+  <div class="win-card">
+    <h2>El Oráculo se ha revelado</h2>
+    <p>Despejaste la mesa en <b id="finalMoves">0</b> movimientos.</p>
+    <button class="btn" id="playAgain">Leer de nuevo</button>
+  </div>
+</div>
+ 
+<script>
+/* ================= shared golden-card artwork ================= */
+const GOLD_DEFS = `
+<defs>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#fff6d6"/>
+    <stop offset="45%" stop-color="#e3bd5a"/>
+    <stop offset="75%" stop-color="#a97f27"/>
+    <stop offset="100%" stop-color="#6e4d16"/>
+  </linearGradient>
+  <linearGradient id="goldSoft" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0%" stop-color="#f6e2a0"/>
+    <stop offset="100%" stop-color="#8a6a1f"/>
+  </linearGradient>
+  <radialGradient id="inkBg" cx="50%" cy="42%" r="75%">
+    <stop offset="0%" stop-color="#341423"/>
+    <stop offset="60%" stop-color="#1c0a14"/>
+    <stop offset="100%" stop-color="#0e0509"/>
+  </radialGradient>
+  <radialGradient id="backBg" cx="50%" cy="50%" r="75%">
+    <stop offset="0%" stop-color="#3a1526"/>
+    <stop offset="70%" stop-color="#180810"/>
+    <stop offset="100%" stop-color="#0a030a"/>
+  </radialGradient>
+</defs>`;
+ 
+function frame(inner, w=200, h=288){
+  return `
+  <rect x="4" y="4" width="${w-8}" height="${h-8}" rx="14" fill="url(#inkBg)" stroke="url(#gold)" stroke-width="3"/>
+  <rect x="10" y="10" width="${w-20}" height="${h-20}" rx="10" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.85"/>
+  ${corner(16,16,0)}${corner(w-16,16,90)}${corner(w-16,h-16,180)}${corner(16,h-16,270)}
+  ${inner}
+  `;
+}
+function corner(cx,cy,rot){
+  return `<g transform="translate(${cx},${cy}) rotate(${rot})" fill="url(#gold)">
+    <path d="M0,-7 C3,-4 4,-2 4,0 C4,2 3,4 0,7 C-3,4 -4,2 -4,0 C-4,-2 -3,-4 0,-7 Z"/>
+    <circle r="1.6" cy="0" cx="0" fill="#fff6d6"/>
+  </g>`;
+}
+function nameplate(w,h,name,roman){
+  return `
+  <rect x="18" y="${h-38}" width="${w-36}" height="24" rx="3" fill="#0d0509" stroke="url(#gold)" stroke-width="1"/>
+  <text x="${w/2}" y="${h-21}" text-anchor="middle" font-family="Cinzel, serif" font-size="12" letter-spacing="2"
+        fill="#f2dfa8">${name.toUpperCase()}</text>
+  <text x="${w/2}" y="26" text-anchor="middle" font-family="Cinzel Decorative, serif" font-size="12"
+        fill="#f2dfa8" opacity="0.9">${roman}</text>`;
+}
+ 
+const icons = {
+  sol: (cx=100,cy=140)=>`
+    <g stroke="url(#gold)" stroke-width="2.5" fill="none">
+      ${Array.from({length:12}).map((_,i)=>{
+        const a=i*30*Math.PI/180;
+        const x1=cx+Math.cos(a)*38, y1=cy+Math.sin(a)*38;
+        const x2=cx+Math.cos(a)*66, y2=cy+Math.sin(a)*66;
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+      }).join('')}
+      <circle cx="${cx}" cy="${cy}" r="34" fill="url(#inkBg)"/>
+      <circle cx="${cx}" cy="${cy}" r="34"/>
+      <circle cx="${cx}" cy="${cy}" r="24" opacity="0.6"/>
+      <path d="M${cx-14},${cy+6} Q${cx},${cy+18} ${cx+14},${cy+6}" stroke-width="2"/>
+      <circle cx="${cx-9}" cy="${cy-4}" r="2.4" fill="url(#gold)" stroke="none"/>
+      <circle cx="${cx+9}" cy="${cy-4}" r="2.4" fill="url(#gold)" stroke="none"/>
+    </g>`,
+  luna: (cx=100,cy=140)=>`
+    <g stroke="url(#gold)" stroke-width="2.5" fill="none">
+      <path d="M${cx+26},${cy-42} A44,44 0 1 0 ${cx+26},${cy+42} A34,34 0 1 1 ${cx+26},${cy-42} Z" fill="url(#inkBg)"/>
+      ${[[-52,-46],[52,-46],[-58,10],[60,20],[-30,58],[36,54]].map(([dx,dy])=>
+        `<g transform="translate(${cx+dx},${cy+dy})" fill="url(#gold)" stroke="none">
+           <path d="M0,-4 L1.3,-1.3 4,0 1.3,1.3 0,4 -1.3,1.3 -4,0 -1.3,-1.3 Z"/>
+         </g>`).join('')}
+    </g>`,
+  estrella: (cx=100,cy=140)=>{
+    const star=(cx,cy,r1,r2,n,rot=0)=>{
+      let pts=[];
+      for(let i=0;i<n*2;i++){
+        const r=i%2===0?r1:r2;
+        const a=(Math.PI/n)*i - Math.PI/2 + rot;
+        pts.push(`${cx+Math.cos(a)*r},${cy+Math.sin(a)*r}`);
+      }
+      return `<polygon points="${pts.join(' ')}"/>`;
+    };
+    return `
+    <g stroke="url(#gold)" stroke-width="2.2" fill="none">
+      <g fill="url(#inkBg)">${star(cx,cy-6,42,20,8)}</g>
+      ${star(cx,cy-6,42,20,8)}
+      ${[[-56,52,7],[54,50,5],[0,74,6]].map(([dx,dy,r])=>
+        `<g fill="url(#gold)" stroke="none">${star(cx+dx,cy+dy,r,r*0.42,5)}</g>`).join('')}
+      <path d="M${cx-30},${cy+70} q30,20 60,0" stroke-width="1.6" opacity="0.8"/>
+    </g>`;
+  },
+  loco: (cx=100,cy=150)=>`
+    <g stroke="url(#gold)" stroke-width="2.4" fill="none" stroke-linejoin="round">
+      <path d="M${cx-40},${cy+50} L${cx+46},${cy+50}" />
+      <path d="M${cx-6},${cy+50} C${cx-30},${cy+10} ${cx-6},${cy-46} ${cx+18},${cy-58}" fill="url(#inkBg)"/>
+      <circle cx="${cx+20}" cy="${cy-64}" r="9" fill="url(#inkBg)"/>
+      <path d="M${cx+2},${cy-30} L${cx+2},${cy+50}" stroke-width="2"/>
+      <path d="M${cx-16},${cy-14} L${cx+2},${cy-28} L${cx+20},${cy-10}" stroke-width="2"/>
+      <path d="M${cx-30},${cy+40} q-14,-4 -18,-18" stroke-width="2"/>
+      <path d="M${cx-48},${cy+18} l6,-16 l10,4 l-4,14 Z" fill="url(#gold)" stroke="none"/>
+    </g>`,
+  muerte: (cx=100,cy=140)=>`
+    <g stroke="url(#gold)" stroke-width="2.2" fill="none">
+      <circle cx="${cx}" cy="${cy}" r="52" opacity="0.55"/>
+      <path d="M${cx-20},${cy-70} q20,-14 40,0" fill="none"/>
+      <ellipse cx="${cx}" cy="${cy-14}" rx="24" ry="30" fill="url(#inkBg)"/>
+      <circle cx="${cx-9}" cy="${cy-16}" r="5" fill="url(#gold)" stroke="none"/>
+      <circle cx="${cx+9}" cy="${cy-16}" r="5" fill="url(#gold)" stroke="none"/>
+      <path d="M${cx-8},${cy-3} L${cx},${cy+5} L${cx+8},${cy-3}" />
+      <path d="M${cx-12},${cy+6} q12,10 24,0" />
+      <path d="M${cx-30},${cy+18} L${cx-58},${cy+52}" stroke-width="3"/>
+      <path d="M${cx-58},${cy+52} l22,-4 M${cx-58},${cy+52} l4,22" stroke-width="3"/>
+      <path d="M${cx-24},${cy+30} L${cx+26},${cy+30} L${cx+2},${cy+66} Z" opacity="0.85"/>
+    </g>`,
+  torre: (cx=100,cy=150)=>`
+    <g stroke="url(#gold)" stroke-width="2.3" fill="none" stroke-linejoin="round">
+      <rect x="${cx-26}" y="${cy-30}" width="52" height="78" fill="url(#inkBg)"/>
+      <path d="M${cx-30},${cy-30} l6,-10 l6,10 M${cx-14},${cy-30} l6,-10 l6,10 M${cx+2},${cy-30} l6,-10 l6,10 M${cx+18},${cy-30} l6,-10 l6,10" />
+      <line x1="${cx-26}" y1="${cy}" x2="${cx+26}" y2="${cy}"/>
+      <line x1="${cx-26}" y1="${cy+24}" x2="${cx+26}" y2="${cy+24}"/>
+      <path d="M${cx+2},${cy-56} l-16,26 l12,0 l-14,24" stroke="url(#gold)" stroke-width="3" fill="none"/>
+      <circle cx="${cx-40}" cy="${cy+56}" r="3" fill="url(#gold)" stroke="none"/>
+      <circle cx="${cx+40}" cy="${cy+64}" r="3" fill="url(#gold)" stroke="none"/>
+    </g>`,
+  rueda: (cx=100,cy=140)=>`
+    <g stroke="url(#gold)" stroke-width="2.3" fill="none">
+      <circle cx="${cx}" cy="${cy}" r="50" fill="url(#inkBg)"/>
+      <circle cx="${cx}" cy="${cy}" r="50"/>
+      <circle cx="${cx}" cy="${cy}" r="34"/>
+      <circle cx="${cx}" cy="${cy}" r="8" fill="url(#gold)" stroke="none"/>
+      ${Array.from({length:8}).map((_,i)=>{
+        const a=i*45*Math.PI/180;
+        const x1=cx+Math.cos(a)*8, y1=cy+Math.sin(a)*8;
+        const x2=cx+Math.cos(a)*50, y2=cy+Math.sin(a)*50;
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke-width="1.6"/>`;
+      }).join('')}
+      ${Array.from({length:4}).map((_,i)=>{
+        const a=(i*90+22)*Math.PI/180;
+        const x=cx+Math.cos(a)*50, y=cy+Math.sin(a)*50;
+        return `<circle cx="${x}" cy="${y}" r="3.6" fill="url(#gold)" stroke="none"/>`;
+      }).join('')}
+    </g>`,
+  mundo: (cx=100,cy=140)=>`
+    <g stroke="url(#gold)" stroke-width="2.2" fill="none">
+      <path d="M${cx-50},${cy+40} C${cx-70},${cy-10} ${cx-40},${cy-56} ${cx-6},${cy-58}" />
+      <path d="M${cx+50},${cy+40} C${cx+70},${cy-10} ${cx+40},${cy-56} ${cx+6},${cy-58}" />
+      ${[0,1,2,3,4].map(i=>`<circle cx="${cx-50+i*1.2}" cy="${cy+40-i*20}" r="1.4" fill="url(#gold)" stroke="none"/>`).join('')}
+      <circle cx="${cx}" cy="${cy-4}" r="38" fill="url(#inkBg)"/>
+      <circle cx="${cx}" cy="${cy-4}" r="38"/>
+      <ellipse cx="${cx}" cy="${cy-4}" rx="38" ry="14" />
+      <ellipse cx="${cx}" cy="${cy-4}" rx="16" ry="38" />
+      <line x1="${cx-38}" y1="${cy-4}" x2="${cx+38}" y2="${cy-4}" stroke-width="1.4" opacity="0.7"/>
+    </g>`
+};
+ 
+const ARCANA = [
+  {key:'sol', name:'El Sol', roman:'XIX'},
+  {key:'luna', name:'La Luna', roman:'XVIII'},
+  {key:'estrella', name:'La Estrella', roman:'XVII'},
+  {key:'loco', name:'El Loco', roman:'0'},
+  {key:'muerte', name:'La Muerte', roman:'XIII'},
+  {key:'torre', name:'La Torre', roman:'XVI'},
+  {key:'rueda', name:'La Rueda', roman:'X'},
+  {key:'mundo', name:'El Mundo', roman:'XXI'},
+];
+ 
+/* poetic meanings used by the oracle reading */
+const TEXTS = {
+  sol: [
+    "Una claridad cálida se abre paso entre las nubes que creías eternas. Lo que temías mostrar al mundo hoy encuentra luz, y con ella, una alegría sencilla y merecida.",
+    "Hay una risa que vuelve después de un tiempo seco. El Sol no promete que todo será fácil, solo que hoy puedes mirar de frente sin entornar los ojos.",
+    "Algo que cuidaste en silencio empieza a dar fruto a la vista de todos. Deja que te vean brillar sin pedir permiso."
+  ],
+  luna: [
+    "Caminas por un sendero que la razón no alcanza a iluminar del todo. Confía en lo que sientes antes que en lo que puedes explicar; el instinto conoce atajos que la mente aún no traza.",
+    "No todo lo que inquieta es una amenaza: a veces es solo la imaginación trabajando de más en la oscuridad. Respira antes de decidir qué es real.",
+    "Un sueño reciente guarda una pista que la vigilia todavía no descifra. Presta atención a lo que se repite cuando cierras los ojos."
+  ],
+  estrella: [
+    "Después de la tormenta, algo se repara en silencio. Esta carta habla de esperanza serena: pequeños actos de fe que, gota a gota, devuelven la confianza perdida.",
+    "No hace falta que la herida cierre del todo para empezar a sanar. Hoy alcanza con un gesto amable hacia ti mismo.",
+    "Una guía lejana, casi imperceptible, te recuerda que vas por buen camino. No necesitas verla entera para seguirla."
+  ],
+  loco: [
+    "Un umbral se abre frente a ti, y el vértigo no es señal de peligro sino de vida. Da el primer paso sin mapa completo; el camino se revela a quien se atreve a andarlo.",
+    "Llevas demasiado tiempo pidiendo garantías que nadie puede darte. A veces hay que saltar con los ojos abiertos y confiar en las propias piernas.",
+    "Una idea que parece ingenua guarda más sabiduría de la que aparenta. No la descartes solo porque todavía no tiene forma."
+  ],
+  muerte: [
+    "Algo dentro de ti ya terminó, aunque el corazón tarde en aceptarlo. No temas al cierre: donde una puerta se sella para siempre, otra se abre sin ruido.",
+    "No es un final cruel, es una poda necesaria. Lo que sueltes hoy deja espacio para lo que todavía no tiene nombre.",
+    "Estás de luto por una versión de ti que ya no existe. Está bien despedirla con cariño en vez de con miedo."
+  ],
+  torre: [
+    "Una verdad incómoda sacude una estructura que creías firme. Duele, pero libera: lo que se derrumba hoy no merecía sostenerte mañana.",
+    "El quiebre llega de golpe, sin previo aviso, precisamente porque llevabas tiempo ignorando las grietas. Deja que caiga lo que ya no sostenía nada.",
+    "No fue un error construir lo que se cae ahora: fue necesario para llegar hasta aquí. Ahora toca construir sobre terreno más honesto."
+  ],
+  rueda: [
+    "La fortuna gira, y con ella las circunstancias que parecían fijas. Nada de lo bueno ni lo difícil dura para siempre; deja que el ciclo siga su curso natural.",
+    "Lo que hoy se siente estancado ya está, en secreto, empezando a moverse. Los cambios grandes casi nunca avisan antes de llegar.",
+    "Un giro inesperado te devuelve algo que creías perdido. No siempre puedes elegir cuándo gira la rueda, pero sí cómo te sostienes."
+  ],
+  mundo: [
+    "Un capítulo se cierra con la sensación satisfactoria de haber llegado. Celebra el camino recorrido: lo que empezaste con incertidumbre hoy encuentra su forma completa.",
+    "Todas las piezas sueltas por fin encajan, aunque el resultado no se parezca al plan original. Eso también cuenta como llegar.",
+    "Estás más cerca del final de esta historia de lo que crees. Empieza a imaginar, sin miedo, qué viene después."
+  ],
+};
+ 
+function cardBackSVG(){
+  return `<svg viewBox="0 0 200 288" xmlns="http://www.w3.org/2000/svg">
+    ${GOLD_DEFS}
+    <rect x="4" y="4" width="192" height="280" rx="14" fill="url(#backBg)" stroke="url(#gold)" stroke-width="3"/>
+    <rect x="12" y="12" width="176" height="264" rx="10" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.8"/>
+    <rect x="18" y="18" width="164" height="252" rx="8" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.5"/>
+    ${corner(24,24,0)}${corner(176,24,90)}${corner(176,264,180)}${corner(24,264,270)}
+    <g stroke="url(#gold)" stroke-width="1.4" fill="none" opacity="0.8">
+      <circle cx="100" cy="144" r="70"/>
+      <circle cx="100" cy="144" r="58"/>
+      ${Array.from({length:16}).map((_,i)=>{
+        const a=i*22.5*Math.PI/180;
+        const x1=100+Math.cos(a)*58, y1=144+Math.sin(a)*58;
+        const x2=100+Math.cos(a)*70, y2=144+Math.sin(a)*70;
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+      }).join('')}
+    </g>
+    <g stroke="url(#gold)" stroke-width="2.4" fill="none">
+      <path d="M60,144 C80,116 120,116 140,144 C120,172 80,172 60,144 Z" fill="url(#inkBg)"/>
+      <circle cx="100" cy="144" r="15" fill="url(#gold)" stroke="none"/>
+      <circle cx="100" cy="144" r="7" fill="url(#backBg)" stroke="url(#gold)" stroke-width="1.6"/>
+    </g>
+    <text x="100" y="252" text-anchor="middle" font-family="Cinzel Decorative, serif" font-size="13"
+          letter-spacing="3" fill="#f2dfa8" opacity="0.9">ORÁCULO</text>
+  </svg>`;
+}
+ 
+function cardFrontSVG(item){
+  const inner = icons[item.key]();
+  return `<svg viewBox="0 0 200 288" xmlns="http://www.w3.org/2000/svg">
+    ${GOLD_DEFS}
+    ${frame(inner + nameplate(200,288,item.name,item.roman))}
+  </svg>`;
+}
+ 
+function cardHTML(){
+  return `<div class="card-inner">
+    <div class="card-face back">${cardBackSVG()}</div>
+    <div class="card-face front"></div>
+  </div>`;
+}
+ 
+/* ================= tabs ================= */
+const tabs = document.querySelectorAll('.tab');
+const panels = { memoria: document.getElementById('panel-memoria'), oraculo: document.getElementById('panel-oraculo') };
+const subtitle = document.getElementById('subtitle');
+const SUBTITLES = {
+  memoria: 'Voltea dos cartas para hallar sus pares. Despeja la mesa en el menor número de movimientos.',
+  oraculo: 'Elige tu tirada, deja que el azar decida las cartas, y voltéalas para recibir tu lectura.',
+};
+tabs.forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    tabs.forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const mode = tab.dataset.mode;
+    Object.entries(panels).forEach(([key,el])=> el.classList.toggle('active', key===mode));
+    subtitle.textContent = SUBTITLES[mode];
+  });
+});
+ 
+/* ================= memory game ================= */
+const board = document.getElementById('board');
+const movesEl = document.getElementById('moves');
+const pairsEl = document.getElementById('pairs');
+const overlay = document.getElementById('overlay');
+const finalMovesEl = document.getElementById('finalMoves');
+ 
+let deck = [], first = null, second = null, lock = false, moves = 0, matched = 0;
+ 
+function shuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+ 
+function buildDeck(){
+  deck = shuffle([...ARCANA, ...ARCANA].map((c,i)=>({...c, uid:i})));
+}
+ 
+function renderBoard(){
+  board.innerHTML = '';
+  deck.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.key = item.key;
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face back">${cardBackSVG()}</div>
+        <div class="card-face front">${cardFrontSVG(item)}</div>
+      </div>
+      <div class="seal">✓</div>`;
+    card.addEventListener('click', ()=>onFlip(card));
+    board.appendChild(card);
+  });
+}
+ 
+function onFlip(card){
+  if(lock) return;
+  if(card.classList.contains('flipped') || card.classList.contains('matched')) return;
+ 
+  card.classList.add('flipped');
+ 
+  if(!first){ first = card; return; }
+  second = card;
+  lock = true;
+  moves++;
+  movesEl.textContent = moves;
+ 
+  if(first.dataset.key === second.dataset.key){
+    setTimeout(()=>{
+      first.classList.add('matched');
+      second.classList.add('matched');
+      matched++;
+      pairsEl.textContent = `${matched}/8`;
+      first = null; second = null; lock = false;
+      if(matched === 8){
+        setTimeout(()=>{
+          finalMovesEl.textContent = moves;
+          overlay.classList.add('show');
+        }, 500);
+      }
+    }, 480);
+  } else {
+    first.classList.add('wrong');
+    second.classList.add('wrong');
+    setTimeout(()=>{
+      first.classList.remove('flipped','wrong');
+      second.classList.remove('flipped','wrong');
+      first = null; second = null; lock = false;
+    }, 900);
+  }
+}
+ 
+function newGame(){
+  moves = 0; matched = 0; first = null; second = null; lock = false;
+  movesEl.textContent = '0';
+  pairsEl.textContent = '0/8';
+  overlay.classList.remove('show');
+  buildDeck();
+  renderBoard();
+}
+ 
+document.getElementById('restart').addEventListener('click', newGame);
+document.getElementById('playAgain').addEventListener('click', newGame);
+ 
+/* ================= oracle reading ================= */
+const oracleRow = document.getElementById('oracleRow');
+const scrollPanel = document.getElementById('scrollContent');
+const spreadBtns = document.querySelectorAll('.spread-btn');
+const shuffleBtn = document.getElementById('shuffleOracle');
+const divinerLineEl = document.getElementById('divinerLine');
+const divinerAvatarEl = document.getElementById('divinerAvatar');
+ 
+let spreadCount = 1;
+let oracleCards = [];
+let revealedCount = 0;
+ 
+const DIVINER_INTROS = [
+  "Acércate. Las cartas ya te esperaban.",
+  "Cierra los ojos un instante... ahora voltéalas.",
+  "El oro de estas cartas solo brilla para quien pregunta con el corazón abierto.",
+  "No elijas con la mente. Deja que la mano se mueva sola.",
+  "Hoy la mesa tiene algo que decirte. Escuchemos.",
+];
+const DIVINER_OUTROS = [
+  "Así hablan las cartas hoy. Vuelve cuando el corazón tenga otra pregunta.",
+  "La lectura ha terminado, pero el destino sigue escribiéndose contigo.",
+  "Guarda estas palabras, aunque no las entiendas todas todavía.",
+  "El oráculo calla ahora. Lo dicho, dicho está.",
+];
+ 
+function setDivinerLine(text){
+  divinerLineEl.classList.add('fade');
+  setTimeout(()=>{
+    divinerLineEl.textContent = text;
+    divinerLineEl.classList.remove('fade');
+  }, 350);
+}
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+ 
+function divinerAvatarSVG(){
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    ${GOLD_DEFS}
+    <circle cx="100" cy="100" r="94" fill="url(#backBg)" stroke="url(#gold)" stroke-width="3"/>
+    <circle cx="100" cy="100" r="84" fill="none" stroke="url(#gold)" stroke-width="1" opacity="0.6"/>
+    <g stroke="url(#gold)" stroke-width="1.2" fill="none" opacity="0.7">
+      ${Array.from({length:12}).map((_,i)=>{
+        const a=i*30*Math.PI/180;
+        const x1=100+Math.cos(a)*84, y1=100+Math.sin(a)*84;
+        const x2=100+Math.cos(a)*90, y2=100+Math.sin(a)*90;
+        return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+      }).join('')}
+    </g>
+    <path d="M40,120 C40,55 160,55 160,120 C160,150 140,150 130,132 C122,150 78,150 70,132 C60,150 40,150 40,120 Z"
+          fill="#0d0509" stroke="url(#gold)" stroke-width="2"/>
+    <path d="M52,108 C52,68 148,68 148,108" fill="none" stroke="url(#gold)" stroke-width="2" opacity="0.8"/>
+    <g stroke="url(#gold)" stroke-width="2.2" fill="none">
+      <path d="M62,112 C78,96 122,96 138,112 C122,128 78,128 62,112 Z" fill="#170611"/>
+      <circle cx="100" cy="112" r="11" fill="url(#gold)" stroke="none"/>
+      <circle cx="100" cy="112" r="5" fill="#170611" stroke="url(#gold)" stroke-width="1.4"/>
+    </g>
+    <rect class="lid" x="60" y="105" width="80" height="16" fill="#0d0509"/>
+    <circle cx="70" cy="72" r="1.6" fill="url(#gold)"/>
+    <circle cx="130" cy="72" r="1.6" fill="url(#gold)"/>
+    <circle cx="100" cy="60" r="1.8" fill="url(#gold)"/>
+  </svg>`;
+}
+divinerAvatarEl.innerHTML = divinerAvatarSVG();
+ 
+const POSITION_LABELS = { 1: [''], 3: ['Pasado','Presente','Futuro'], 8: null };
+ 
+spreadBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    spreadBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    spreadCount = Number(btn.dataset.count);
+    oracleRow.className = 'oracle-row count-' + spreadCount;
+    drawSpread();
+  });
+});
+ 
+function burstSVG(){
+  const cx=110, cy=110;
+  let rays = '';
+  for(let i=0;i<16;i++){
+    const a = i*22.5*Math.PI/180;
+    const len = i%2===0 ? 100 : 60;
+    const x1 = cx+Math.cos(a)*24, y1 = cy+Math.sin(a)*24;
+    const x2 = cx+Math.cos(a)*len, y2 = cy+Math.sin(a)*len;
+    rays += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#f6e2a0" stroke-width="${i%2===0?3:1.6}" stroke-linecap="round" opacity="${i%2===0?0.9:0.55}"/>`;
+  }
+  return `<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">${rays}
+    <circle cx="${cx}" cy="${cy}" r="18" fill="none" stroke="#f6e2a0" stroke-width="2" opacity="0.7"/>
+  </svg>`;
+}
+ 
+function drawSpread(){
+  oracleCards = shuffle([...ARCANA]).slice(0, spreadCount);
+  oracleRow.innerHTML = '';
+  revealedCount = 0;
+  setDivinerLine(pick(DIVINER_INTROS));
+  const labels = POSITION_LABELS[spreadCount];
+ 
+  oracleCards.forEach((item, i)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'oracle-card-wrap';
+    wrap.style.animationDelay = (i*110)+'ms';
+    if(labels && labels[i]){
+      const lbl = document.createElement('div');
+      lbl.className = 'position-label';
+      lbl.textContent = labels[i];
+      wrap.appendChild(lbl);
+    }
+    const burst = document.createElement('div');
+    burst.className = 'burst';
+    burst.innerHTML = burstSVG();
+    wrap.appendChild(burst);
+ 
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.key = item.key;
+    card.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face back">${cardBackSVG()}</div>
+        <div class="card-face front">${cardFrontSVG(item)}</div>
+      </div>`;
+    card.addEventListener('click', ()=>revealOracleCard(card, item, labels ? labels[i] : null, burst));
+    wrap.appendChild(card);
+    oracleRow.appendChild(wrap);
+  });
+ 
+  scrollPanel.innerHTML = `<div class="scroll-placeholder">Elige tu tirada y voltea las cartas para revelar la lectura.</div>`;
+}
+ 
+function typeWriter(el, text, speed=16, onDone){
+  el.textContent = '';
+  el.classList.add('typing');
+  let i = 0;
+  const timer = setInterval(()=>{
+    el.textContent += text.charAt(i);
+    i++;
+    if(i >= text.length){
+      clearInterval(timer);
+      el.classList.remove('typing');
+      if(onDone) onDone();
+    }
+  }, speed);
+}
+ 
+function revealOracleCard(card, item, positionLabel, burst){
+  if(card.classList.contains('flipped')) return;
+  card.classList.add('flipped', 'revealed');
+ 
+  setTimeout(()=>{
+    if(burst){
+      burst.classList.add('go');
+      setTimeout(()=> burst.classList.remove('go'), 900);
+    }
+  }, 320);
+ 
+  const placeholder = scrollPanel.querySelector('.scroll-placeholder');
+  if(placeholder) placeholder.remove();
+ 
+  const entry = document.createElement('div');
+  entry.className = 'reading-entry';
+  entry.innerHTML = `
+    ${positionLabel ? `<div class="reading-pos">${positionLabel}</div>` : ''}
+    <div class="reading-name">${item.name}<span class="roman">${item.roman}</span></div>
+    <p class="reading-text"></p>
+  `;
+  scrollPanel.appendChild(entry);
+  const textEl = entry.querySelector('.reading-text');
+  const chosenText = pick(TEXTS[item.key]);
+  revealedCount++;
+  const isLast = revealedCount >= spreadCount;
+  setTimeout(()=> typeWriter(textEl, chosenText, 16, ()=>{
+    if(isLast) setDivinerLine(pick(DIVINER_OUTROS));
+  }), 450);
+}
+ 
+shuffleBtn.addEventListener('click', drawSpread);
+ 
+function spawnTwinkles(container, count=18){
+  container.innerHTML = '';
+  for(let i=0;i<count;i++){
+    const t = document.createElement('div');
+    t.className = 'twinkle';
+    t.style.left = (Math.random()*100)+'%';
+    t.style.top = (Math.random()*100)+'%';
+    t.style.animationDelay = (Math.random()*3.4)+'s';
+    t.style.animationDuration = (2.6+Math.random()*2.4)+'s';
+    container.appendChild(t);
+  }
+}
+ 
+/* ================= init ================= */
+newGame();
+drawSpread();
+spawnTwinkles(document.getElementById('twinkleField'));
+</script>
+</body>
+</html>
